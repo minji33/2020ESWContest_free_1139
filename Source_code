@@ -1,0 +1,80 @@
+#include "ESP8266.h"
+#include <SoftwareSerial.h>
+
+#define ECHO1 8
+#define TRIG1 9
+
+#define ECHO2 10
+#define TRIG2 11
+
+#define ECHO3 12
+#define TRIG3 13
+ 
+//SoftwareSerial(RX, TX)
+//RX(D2): ESP8266의 TX 연결
+//TX(D3): ESP8266의 RX 연결
+
+unsigned long startTime;
+
+SoftwareSerial esp8266Serial = SoftwareSerial(2, 3); 
+ESP8266 wifi = ESP8266(esp8266Serial);
+
+#define SSID "HY-DORM4-764"
+#define PWD "residence764"
+
+void setup()
+{
+  Serial.begin(9600);
+ 
+  pinMode(ECHO1, INPUT);
+  pinMode(TRIG1, OUTPUT);
+
+  pinMode(ECHO2, INPUT);
+  pinMode(TRIG2, OUTPUT);
+
+  pinMode(ECHO3, INPUT);
+  pinMode(TRIG3, OUTPUT);
+
+  startTime = millis();
+}
+
+long getDirection(int echo, int trig)
+{
+  long duration, distance;  //거리 측정을 위한 변수 선언
+  
+  digitalWrite(trig, LOW);   // Tring 핀 LOW
+  delayMicroseconds(2);      // 2us 딜레이
+  digitalWrite(trig, HIGH);  // Tring 핀 High
+  delayMicroseconds(10);      // 10us 딜레이
+  digitalWrite(trig, LOW);   // Tring 핀 Low  
+  duration = pulseIn(echo, HIGH);
+ 
+  distance = duration * 170 / 1000;
+
+  return distance;
+}
+
+void sendNetwork() {
+  Serial.println("send network!!");
+}
+
+void loop()
+{
+  unsigned long nowTime = millis();
+  
+  long duration1 = getDirection(ECHO1, TRIG1);
+  long duration2 = getDirection(ECHO2, TRIG2);
+  long duration3 = getDirection(ECHO3, TRIG3);
+  long avgDuration = (duration1 + duration2 + duration3) / 3;
+
+  if (nowTime - startTime >= 5000) {
+    Serial.println(duration1);
+    Serial.println(duration2);
+    Serial.println(duration3);
+    
+    startTime = nowTime;
+    sendNetwork();
+  }
+  
+  delay(1000);
+}
